@@ -248,7 +248,7 @@ def find_graphviz():
             # Note, we could also use the win32api to get this
             # information, but win32api may not be installed.
 
-            path = os.path.join(os.environ['PROGRAMFILES'], 'ATT', 'GraphViz', 'bin')
+            path = os.path.join(os.environ['PROGRAMFILES'], 'GraphViz', 'bin')
 
         else:
             # Just in case, try the default...
