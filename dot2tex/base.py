@@ -45,7 +45,7 @@ def create_xdot(dotdata, prog='dot', options=''):
     progpath = '"%s"' % progs[prog].strip()
     cmd = progpath + ' -T' + output_format + ' ' + options + ' ' + tmp_name
     log.debug('Creating xdot data with: %s', cmd)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, close_fds=(sys.platform != 'win32'))
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, close_fds=(sys.platform != 'win32'), text=True)
     (stdout, stderr) = (p.stdout, p.stderr)
     try:
         data = stdout.read()
@@ -111,7 +111,7 @@ def parse_drawstring(drawstring):
         tokens = s.split()
         n = int(tokens[0])
         points = [float(t) for t in tokens[1:n * 2 + 1]]
-        didx = sum(len(t) for t in tokens[1:n * 2 + 1]) + n * 2 + 2
+        didx = sum(len(t) for t in tokens[1:n * 2 + 1]) + n * 2 + 2 + 1
         npoints = nsplit(points, 2)
         return didx, (c, npoints)
 
@@ -140,7 +140,7 @@ def parse_drawstring(drawstring):
         n = int(tokens[1])
         tmp = len(size) + len(tokens[1]) + 4
         d = s[tmp:tmp + n]
-        didx = len(d) + tmp
+        didx = len(d) + tmp + 1
         return didx, (c, size, d)
 
     def doText(c, s):
@@ -154,13 +154,13 @@ def parse_drawstring(drawstring):
         n = int(tokens[4])
         tmp = sum(len(t) for t in tokens[0:5]) + 7
         text = s[tmp:tmp + n]
-        didx = len(text) + tmp
+        didx = len(text) + tmp + 1
         return didx, [c, x, y, j, w, text]
 
     cmdlist = []
     stat = {}
     idx = 0
-    s = drawstring.strip().replace('\\', '')
+    s = drawstring #.strip().replace('\\', '')
     while idx < len(s) - 1:
         didx = 1
         c = s[idx]
