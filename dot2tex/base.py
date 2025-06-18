@@ -159,7 +159,7 @@ def parse_drawstring(drawstring):
 
     cmdlist = []
     stat = {}
-    idx = 0   
+    idx = 0
     s = drawstring.strip().encode().decode('unicode_escape')
     while idx < len(s) - 1:
         didx = 1
@@ -821,7 +821,7 @@ class DotConvBase(object):
             if node.attr.get('shape', '') == 'record':
                 log.warning('Record nodes not supported in preprocessing mode: %s', name)
                 continue
-            texlbl = self.get_label(node).replace("\\\\", "\\")
+            texlbl = self.get_label(node)
 
             if texlbl:
                 node.attr['texlbl'] = texlbl
