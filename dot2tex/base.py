@@ -159,8 +159,8 @@ def parse_drawstring(drawstring):
 
     cmdlist = []
     stat = {}
-    idx = 0
-    s = drawstring #.strip().replace('\\', '')
+    idx = 0   
+    s = drawstring.strip().encode().decode('unicode_escape')
     while idx < len(s) - 1:
         didx = 1
         c = s[idx]
@@ -397,10 +397,11 @@ class DotConvBase(object):
                 # string. Use \\ instead
                 # Todo: Use text from node|edge.label or name
                 # Todo: What about multiline labels?
-                text = drawop[5]
+                label = text = drawop[5]
                 # head and tail label
                 texmode = self.options.get('texmode', 'verbatim')
-                label = text = drawobj.attr.get('label', '')
+                if not is_multiline_label(drawobj):
+                    label = text = drawobj.attr.get('label', '')
                 if drawobj.attr.get('texmode', ''):
                     texmode = drawobj.attr['texmode']
                 if texlbl_name in drawobj.attr:
@@ -820,7 +821,7 @@ class DotConvBase(object):
             if node.attr.get('shape', '') == 'record':
                 log.warning('Record nodes not supported in preprocessing mode: %s', name)
                 continue
-            texlbl = self.get_label(node)
+            texlbl = self.get_label(node).replace("\\\\", "\\")
 
             if texlbl:
                 node.attr['texlbl'] = texlbl
