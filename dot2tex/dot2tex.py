@@ -36,7 +36,9 @@ __license__ = 'MIT'
 
 import argparse
 import os.path as path
-import sys, os, re
+import sys
+import os
+import re
 import logging
 
 from . import dotparsing
@@ -171,7 +173,7 @@ def create_options_parser():
     parser.add_argument(
         '--valignmode', dest='valignmode', default='center',
         choices=('center', 'dot'),
-        help='Set vertical alginment mode  (center, dot).'
+        help='Set vertical alignment mode  (center, dot).'
     )
     parser.add_argument(
         '--nominsize', dest='nominsize', action='store_true',
@@ -250,7 +252,7 @@ def print_version_info():
 
 
 def load_dot_file(filename):
-    with open(filename) as f:
+    with open(filename, 'r', encoding="utf8") as f:
         dotdata = f.readlines()
     log.info('Data read from %s' % filename)
     return dotdata
@@ -280,13 +282,10 @@ def main(run_as_module=False, dotdata=None, options=None):
 
     if options.debug:
         # initalize log handler
-        if run_as_module:
-            pass
-        else:
-            hdlr = logging.FileHandler('dot2tex.log')
-            log.addHandler(hdlr)
-            formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
-            hdlr.setFormatter(formatter)
+        hdlr = logging.FileHandler('./dot2tex.log',mode='w', encoding='utf-8')
+        log.addHandler(hdlr)
+        formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+        hdlr.setFormatter(formatter)
         log.setLevel(logging.DEBUG)
         nodebug = False
     else:
@@ -366,7 +365,8 @@ def main(run_as_module=False, dotdata=None, options=None):
     dotdata = "".join(lines)
 
     if options.cache and not run_as_module:
-        import hashlib, pickle
+        import hashlib
+        import pickle
 
         if options.inputfile is not None and options.outputfile:
             log.info('Caching enabled')
@@ -417,7 +417,7 @@ def main(run_as_module=False, dotdata=None, options=None):
             parser = create_options_parser()
         options = parser.parse_args(extraoptions[0].split(), options)
         if options.debug and nodebug:
-            # initalize log handler
+            # initialize log handler
             if not run_as_module:
                 hdlr = logging.FileHandler('dot2tex.log')
                 log.addHandler(hdlr)
@@ -450,7 +450,7 @@ def main(run_as_module=False, dotdata=None, options=None):
             s = conv.convert(s)
             log.debug('Output after preprocessing:\n%s', s)
         if options.outputfile:
-            with open(options.outputfile, 'w') as f:
+            with open(options.outputfile, 'w' ,encoding="utf-8") as f:
                 f.write(s)
         else:
             if not run_as_module:

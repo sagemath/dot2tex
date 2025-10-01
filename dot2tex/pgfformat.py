@@ -173,9 +173,9 @@ class Dot2PGFConv(DotConvBase):
                            bold='very thick', filled='fill', invis="",
                            rounded='rounded corners', )
         self.dashstyles = dict(
-            dashed='\pgfsetdash{{3pt}{3pt}}{0pt}',
-            dotted='\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
-            bold='\pgfsetlinewidth{1.2pt}')
+            dashed=r'\pgfsetdash{{3pt}{3pt}}{0pt}',
+            dotted=r'\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
+            bold=r'\pgfsetlinewidth{1.2pt}')
 
     def start_node(self, node):
         # Todo: Should find a more elegant solution
@@ -223,9 +223,9 @@ class Dot2PGFConv(DotConvBase):
                 self.fillcolor = color
                 if ccolor.startswith('{'):
                     # rgb or hsb
-                    s += "  \definecolor{newcol}%s\n" % ccolor
+                    s += "  \\definecolor{newcol}%s\n" % ccolor
                     ccolor = 'newcol'
-                s += "  \pgfsetcolor{%s}\n" % ccolor
+                s += "  \\pgfsetcolor{%s}\n" % ccolor
         elif c == 'c':
             # set pen color
             if self.pencolor != color:
@@ -233,9 +233,14 @@ class Dot2PGFConv(DotConvBase):
                 self.color = ''
                 if ccolor.startswith('{'):
                     # rgb or hsb
-                    s += "  \definecolor{strokecol}%s\n" % ccolor
+                    s += "  \\definecolor{strokecol}%s\n" % ccolor
                     ccolor = 'strokecol'
-                s += "  \pgfsetstrokecolor{%s}\n" % ccolor
+                s += "  \\pgfsetstrokecolor{%s}\n" % ccolor
+                if opacity is not None:
+                    self.stroke_opacity = opacity
+                    # Todo: The opacity should probably be set directly when drawing
+                else:
+                    self.stroke_opacity = None
             else:
                 return ""
         elif c == 'C':
@@ -245,14 +250,14 @@ class Dot2PGFConv(DotConvBase):
                 self.color = ''
                 if ccolor.startswith('{'):
                     # rgb
-                    s += "  \definecolor{fillcol}%s\n" % ccolor
+                    s += "  \\definecolor{fillcol}%s\n" % ccolor
                     ccolor = 'fillcol'
-                s += "  \pgfsetfillcolor{%s}\n" % ccolor
-                if not opacity is None:
+                s += "  \\pgfsetfillcolor{%s}\n" % ccolor
+                if opacity is not None:
                     self.opacity = opacity
                     # Todo: The opacity should probably be set directly when drawing
                     # The \pgfsetfillcopacity cmd affects text as well
-                    # s += "  \pgfsetfillopacity{%s}\n" % opacity
+                    # s += "  \\pgfsetfillopacity{%s}\n" % opacity
                 else:
                     self.opacity = None
             else:
@@ -271,54 +276,66 @@ class Dot2PGFConv(DotConvBase):
         filtered_styles = []
         for item in style.split(','):
             keyval = item.strip()
-            if keyval.find('setlinewidth') < 0 and not keyval == 'filled':
+            if keyval.find('setlinewidth') < 0 and keyval != "filled":
                 filtered_styles.append(keyval)
         return ', '.join(filtered_styles)
 
+    def draw_with_opacity(self, pathstr, fill=False):
+        opacitystr = ''
+        if self.stroke_opacity is not None:
+            opacitystr = ' [opacity=%s]' % self.stroke_opacity
+        if not fill:
+            return "  \\draw%s%s;\n" % (opacitystr, pathstr)
+        if self.stroke_opacity == self.opacity:
+            return "  \\filldraw%s%s;\n" % (opacitystr, pathstr)
+        suffix = "  \\draw%s%s;\n" % (opacitystr, pathstr)
+        opacitystr = ''
+        if self.opacity is not None:
+            opacitystr = ' [opacity=%s]' % self.opacity
+        return "  \\fill%s%s;\n" % (opacitystr, pathstr) + suffix
+
     def draw_ellipse(self, drawop, style=None):
         op, x, y, w, h = drawop
-        s = ""
         if op == 'E':
-            if self.opacity is not None:
-                # Todo: Need to know the state of the current node
-                cmd = 'filldraw [opacity=%s]' % self.opacity
-            else:
-                cmd = 'filldraw'
+            should_fill = True
         else:
-            cmd = "draw"
+            should_fill = False
 
         if style:
             stylestr = " [%s]" % style
         else:
             stylestr = ''
-        s += "  \%s%s (%sbp,%sbp) ellipse (%sbp and %sbp);\n" % (cmd, stylestr, smart_float(x), smart_float(y),
-                                                                 # w+self.linewidth,h+self.linewidth)
-                                                                 smart_float(w), smart_float(h))
-        return s
+        return self.draw_with_opacity(
+                "%s (%sbp,%sbp) ellipse (%sbp and %sbp)" % (
+                    stylestr, smart_float(x), smart_float(y),
+                    smart_float(w), smart_float(h)),
+                fill=should_fill)
 
     def draw_polygon(self, drawop, style=None):
         op, points = drawop
         pp = ['(%sbp,%sbp)' % (smart_float(p[0]), smart_float(p[1])) for p in points]
-        cmd = "draw"
         if op == 'P':
-            cmd = "filldraw"
+            should_fill = True
+        else:
+            should_fill = False
 
         if style:
             stylestr = " [%s]" % style
         else:
             stylestr = ''
-        s = "  \%s%s %s -- cycle;\n" % (cmd, stylestr, " -- ".join(pp))
-        return s
+        return self.draw_with_opacity(
+                "%s %s -- cycle" % (stylestr, " -- ".join(pp)),
+                fill=should_fill)
 
     def draw_polyline(self, drawop, style=None):
         op, points = drawop
         pp = ['(%sbp,%sbp)' % (smart_float(p[0]), smart_float(p[1])) for p in points]
         stylestr = ''
-        return "  \draw%s %s;\n" % (stylestr, " -- ".join(pp))
+        return self.draw_with_opacity("%s %s" % (stylestr, " -- ".join(pp)))
 
     def draw_text(self, drawop, style=None):
         # The coordinates given by drawop are not the same as the node
-        # coordinates! This may give som odd results if graphviz' and
+        # coordinates! This may give some odd results if graphviz' and
         # LaTeX' fonts are very different.
         if len(drawop) == 7:
             c, x, y, align, w, text, valign = drawop
@@ -337,7 +354,8 @@ class Dot2PGFConv(DotConvBase):
         lblstyle = ",".join([i for i in styles if i])
         if lblstyle:
             lblstyle = '[' + lblstyle + ']'
-        s = "  \draw (%sbp,%sbp) node%s {%s};\n" % (smart_float(x), smart_float(y), lblstyle, text)
+        s = "  \\draw (%sbp,%sbp) node%s {%s};\n" % (smart_float(x), smart_float(y), lblstyle, text)
+        # TODO should opacity be applied here?
         return s
 
     def draw_bezier(self, drawop, style=None):
@@ -348,8 +366,8 @@ class Dot2PGFConv(DotConvBase):
 
         pstrs = ["%s .. controls %s and %s " % p for p in nsplit(pp, 3)]
         stylestr = ''
-        s += "  \draw%s %s .. %s;\n" % (stylestr, " .. ".join(pstrs), pp[-1])
-        return s
+        return self.draw_with_opacity(
+                "%s %s .. %s" % (stylestr, " .. ".join(pstrs), pp[-1]))
 
     def do_edges(self):
         s = ""
@@ -441,12 +459,12 @@ class Dot2PGFConv(DotConvBase):
             src = pp[0]
             dst = pp[-1]
             if topath:
-                s += "  \draw [%s] %s to[%s]%s %s;\n" % (stylestr, src,
+                s += "  \\draw [%s] %s to[%s]%s %s;\n" % (stylestr, src,
                                                          topath, extra, dst)
             elif not self.options.get('straightedges'):
-                s += "  \draw [%s] %s ..%s %s;\n" % (stylestr, " .. ".join(pstrs), extra, pp[-1])
+                s += "  \\draw [%s] %s ..%s %s;\n" % (stylestr, " .. ".join(pstrs), extra, pp[-1])
             else:
-                s += "  \draw [%s] %s --%s %s;\n" % (stylestr, pp[0], extra, pp[-1])
+                s += "  \\draw [%s] %s --%s %s;\n" % (stylestr, pp[0], extra, pp[-1])
 
         return s
 
@@ -687,9 +705,9 @@ class Dot2TikZConv(Dot2PGFConv):
                            bold='very thick', filled='fill', invis="", invisible="",
                            rounded='rounded corners', )
         self.dashstyles = dict(
-            dashed='\pgfsetdash{{3pt}{3pt}}{0pt}',
-            dotted='\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
-            bold='\pgfsetlinewidth{1.2pt}')
+            dashed=r'\pgfsetdash{{3pt}{3pt}}{0pt}',
+            dotted=r'\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
+            bold=r'\pgfsetlinewidth{1.2pt}')
 
     def set_options(self):
         Dot2PGFConv.set_options(self)
@@ -710,14 +728,14 @@ class Dot2TikZConv(Dot2PGFConv):
         res = self.convert_color(color, True)
         if len(res) == 2:
             ccolor, opacity = res
-            if not (opacity == '1'):
+            if opacity != "1":
                 log.warning('Opacity not supported yet: %s', res)
         else:
             ccolor = res
         s = ""
         if ccolor.startswith('{'):
             # rgb or hsb
-            s += "  \definecolor{%s}%s\n" % (colorname, ccolor)
+            s += "  \\definecolor{%s}%s\n" % (colorname, ccolor)
             cname = colorname
         else:
             cname = color
@@ -934,13 +952,13 @@ class Dot2TikZConv(Dot2PGFConv):
                     extra = " node%s {%s}" % (lblstyle, edgelabel)
 
             if topath:
-                s += "  \draw [%s] (%s) to[%s]%s (%s);\n" % (stylestr, src,
+                s += "  \\draw [%s] (%s) to[%s]%s (%s);\n" % (stylestr, src,
                                                              topath, extra, dst)
             elif not self.options.get('straightedges'):
-                s += "  \draw [%s] %s ..%s (%s);\n" % (stylestr,
+                s += "  \\draw [%s] %s ..%s (%s);\n" % (stylestr,
                                                        " .. ".join(pstrs), extra, dst)
             else:
-                s += "  \draw [%s] (%s) --%s (%s);\n" % (stylestr, src, extra, dst)
+                s += "  \\draw [%s] (%s) --%s (%s);\n" % (stylestr, src, extra, dst)
 
         return s
 

@@ -29,7 +29,7 @@ def create_xdot(dotdata, prog='dot', options=''):
     if progs is None:
         log.error('Could not locate Graphviz binaries')
         return None
-    if not prog in progs:
+    if prog not in progs:
         log.error('Invalid prog=%s', prog)
         raise NameError('The %s program is not recognized. Valid values are %s' % (prog, list(progs)))
 
@@ -45,7 +45,7 @@ def create_xdot(dotdata, prog='dot', options=''):
     progpath = '"%s"' % progs[prog].strip()
     cmd = progpath + ' -T' + output_format + ' ' + options + ' ' + tmp_name
     log.debug('Creating xdot data with: %s', cmd)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, close_fds=(sys.platform != 'win32'))
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, close_fds=(sys.platform != 'win32'), text=True, encoding='utf8')
     (stdout, stderr) = (p.stdout, p.stderr)
     try:
         data = stdout.read()
@@ -111,7 +111,7 @@ def parse_drawstring(drawstring):
         tokens = s.split()
         n = int(tokens[0])
         points = [float(t) for t in tokens[1:n * 2 + 1]]
-        didx = sum(len(t) for t in tokens[1:n * 2 + 1]) + n * 2 + 2
+        didx = sum(len(t) for t in tokens[1:n * 2 + 1]) + n * 2 + 2 + 1
         npoints = nsplit(points, 2)
         return didx, (c, npoints)
 
@@ -140,7 +140,7 @@ def parse_drawstring(drawstring):
         n = int(tokens[1])
         tmp = len(size) + len(tokens[1]) + 4
         d = s[tmp:tmp + n]
-        didx = len(d) + tmp
+        didx = len(d) + tmp + 1
         return didx, (c, size, d)
 
     def doText(c, s):
@@ -154,13 +154,13 @@ def parse_drawstring(drawstring):
         n = int(tokens[4])
         tmp = sum(len(t) for t in tokens[0:5]) + 7
         text = s[tmp:tmp + n]
-        didx = len(text) + tmp
+        didx = len(text) + tmp + 1
         return didx, [c, x, y, j, w, text]
 
     cmdlist = []
     stat = {}
     idx = 0
-    s = drawstring.strip().replace('\\', '')
+    s = drawstring.strip().encode().decode('unicode_escape')
     while idx < len(s) - 1:
         didx = 1
         c = s[idx]
@@ -222,6 +222,7 @@ class DotConvBase:
     def __init__(self, options=None):
         self.color = ""
         self.opacity = None
+        self.stroke_opacity = None
         try:
             self.template
         except AttributeError:
@@ -325,7 +326,7 @@ class DotConvBase:
         # Is the format RBG(A)?
         if drawopcolor.startswith('#'):
             t = list(chunks(drawopcolor[1:], 2))
-            # parallell lines not yet supported
+            # parallel lines not yet supported
             if len(t) > 6:
                 t = t[0:3]
             rgb = [(round((int(n, 16) / 255.0), 2)) for n in t]
@@ -341,7 +342,7 @@ class DotConvBase:
         elif (len(drawopcolor.split(' ')) == 3) or (len(drawopcolor.split(',')) == 3):
             # are the values space or comma separated?
             hsb = drawopcolor.split(',')
-            if not len(hsb) == 3:
+            if len(hsb) != 3:
                 hsb = drawopcolor.split(' ')
             if pgf:
                 return "{hsb}{%s,%s,%s}" % tuple(hsb)
@@ -362,7 +363,7 @@ class DotConvBase:
         return self.do_draw_op(drawoperations, drawobj, stat, texlbl_name, use_drawstring_pos)
 
     def do_draw_op(self, drawoperations, drawobj, stat, texlbl_name="texlbl", use_drawstring_pos=False):
-        """Excecute the operations in drawoperations"""
+        """Execute the operations in drawoperations"""
         s = ""
         for drawop in drawoperations:
             op = drawop[0]
@@ -396,10 +397,11 @@ class DotConvBase:
                 # string. Use \\ instead
                 # Todo: Use text from node|edge.label or name
                 # Todo: What about multiline labels?
-                text = drawop[5]
+                label = text = drawop[5]
                 # head and tail label
                 texmode = self.options.get('texmode', 'verbatim')
-                label = text = drawobj.attr.get('label', '')
+                if not is_multiline_label(drawobj):
+                    label = text = drawobj.attr.get('label', '')
                 if drawobj.attr.get('texmode', ''):
                     texmode = drawobj.attr['texmode']
                 if texlbl_name in drawobj.attr:
@@ -738,7 +740,6 @@ class DotConvBase:
         if getattr(drawobj, 'texmode', ''):
             texmode = drawobj.texmode
         text = getattr(drawobj, label_attribute, None)
-
         # log.warning('text %s %s',text,str(drawobj))
 
         if text is None or text.strip() == '\\N':
@@ -1014,17 +1015,17 @@ class TeXDimProc:
             log.warning('No labels to preprocess')
             return True
         self.tempdir = tempfile.mkdtemp(prefix='dot2tex')
-        log.debug('Creating temporary directroy %s' % self.tempdir)
+        log.debug('Creating temporary directory %s' % self.tempdir)
         self.tempfilename = os.path.join(self.tempdir, 'dot2tex.tex')
         log.debug('Creating temporary file %s' % self.tempfilename)
         s = ""
         for n in self.snippets_code:
             s += "\\begin{preview}%\n"
             s += n.strip() + "%\n"
-            s += "\end{preview}%\n"
-        with open(self.tempfilename, 'w') as f:
+            s += "\\end{preview}%\n"
+        with open(self.tempfilename, 'w', encoding="utf8") as f:
             f.write(self.template.replace('<<preproccode>>', s))
-        with open(self.tempfilename) as f:
+        with open(self.tempfilename, 'r', encoding="utf8") as f:
             s = f.read()
         log.debug('Code written to %s\n' % self.tempfilename + s)
         self.parse_log_file()
@@ -1040,10 +1041,11 @@ class TeXDimProc:
         logfilename = os.path.splitext(self.tempfilename)[0] + '.log'
         tmpdir = os.getcwd()
         os.chdir(os.path.split(logfilename)[0])
+        self.tempfilename=os.path.abspath(os.path.realpath(self.tempfilename)) # get path latex can intepret
         if self.options.get('usepdflatex'):
-            command = 'pdflatex -interaction=nonstopmode %s' % self.tempfilename
+            command = 'pdflatex -interaction=nonstopmode "%s"' % self.tempfilename
         else:
-            command = 'latex -interaction=nonstopmode %s' % self.tempfilename
+            command = 'latex -interaction=nonstopmode "%s"' % self.tempfilename
         log.debug('Running command: %s' % command)
 
         p = Popen(command, shell=True, stdout=PIPE, stderr=PIPE, close_fds=(sys.platform != 'win32'))
@@ -1062,9 +1064,14 @@ class TeXDimProc:
             stderr.close()
         p.kill()
         p.wait()
-
-        with open(logfilename) as f:
+        
+        if sys.platform == "win32":
+            logFileEncoding='ANSI'
+        else:
+            logFileEncoding='utf8'
+        with open(logfilename, 'r', encoding=logFileEncoding) as f:
             logdata = f.read()
+
         log.debug('Logfile from LaTeX run: \n' + logdata)
         os.chdir(tmpdir)
 

@@ -18,17 +18,17 @@ import logging
 import string
 
 import pyparsing
-from pyparsing import __version__ as pyparsing_version
 from pyparsing import (Literal, CaselessLiteral, Word, OneOrMore, Forward, Group, Optional, Combine, restOfLine,
                        cStyleComment, nums, alphanums,
                        ParseException, CharsNotIn, Suppress, Regex, removeQuotes)
+from pyparsing import __version__ as pyparsing_version
 
 from collections import OrderedDict
 
 dot_keywords = ['graph', 'subgraph', 'digraph', 'node', 'edge', 'strict']
 
 id_re_alpha_nums = re.compile('^[_a-zA-Z][a-zA-Z0-9_]*$')
-id_re_num = re.compile('^-?(\.[0-9]+|[0-9]+(\.[0-9]*)?)$')
+id_re_num = re.compile(r'^-?(\.[0-9]+|[0-9]+(\.[0-9]*)?)$')
 id_re_with_port = re.compile('^.*:([^"]+|[^"]*\"[^"]*\"[^"]*)$')
 id_re_dbl_quoted = re.compile('^\".*\"$', re.S)
 id_re_html = re.compile('^<<.*>>$', re.S)
@@ -103,7 +103,7 @@ def windows(iterable, length=2, overlap=0, padding=True):
 def nsplit(seq, n=2):
     """Split a sequence into pieces of length n
 
-    If the lengt of the sequence isn't a multiple of n, the rest is discareded.
+    If the length of the sequence isn't a multiple of n, the rest is discarded.
     Note that nsplit will strings into individual characters.
 
     Examples:
@@ -198,12 +198,13 @@ def find_graphviz():
     #
     if os.sys.platform == 'win32':
         try:
-            import win32api, win32con
+            import win32api
+            import win32con
 
             # Get the GraphViz install path from the registry
             #
             hkey = win32api.RegOpenKeyEx(win32con.HKEY_LOCAL_MACHINE,
-                                         "SOFTWARE\AT&T Research Labs\Graphviz", 0, win32con.KEY_QUERY_VALUE)
+                                         r"SOFTWARE\AT&T Research Labs\Graphviz", 0, win32con.KEY_QUERY_VALUE)
 
             path = win32api.RegQueryValueEx(hkey, "InstallPath")[0]
             win32api.RegCloseKey(hkey)
@@ -242,7 +243,7 @@ def find_graphviz():
             # Note, we could also use the win32api to get this
             # information, but win32api may not be installed.
 
-            path = os.path.join(os.environ['PROGRAMFILES'], 'ATT', 'GraphViz', 'bin')
+            path = os.path.join(os.environ['PROGRAMFILES'], 'GraphViz', 'bin')
 
         else:
             # Just in case, try the default...
@@ -529,7 +530,7 @@ class DotDataParser:
 
                 if isinstance(dest, tuple):
                     destport = dest[1]
-                if not (cmd == ADD_NODE_TO_GRAPH_EDGE):
+                if cmd != ADD_NODE_TO_GRAPH_EDGE:
                     if cmd == ADD_GRAPH_TO_NODE_EDGE:
                         src = subgraph
                     else:
@@ -595,7 +596,7 @@ class DotDataParser:
             self.build_top_graph(tokens[0])
             return self.graph
 
-        except ParseException as err:
+        except ParseException:
             # print(err.line)
             # print(" "*(err.column-1) + "^")
             # print(err)
@@ -650,7 +651,7 @@ class DotNode:
 
         Input:
             name - name of node. Have to be a string
-            **kwds node attributes
+            ``**kwds`` node attributes
 
         """
         self.name = name
