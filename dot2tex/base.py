@@ -212,7 +212,7 @@ def get_drawobj_lblstyle(drawobj, extra_styles=None):
     ])) or None
 
 
-class DotConvBase(object):
+class DotConvBase:
     """Dot2TeX converter base"""
 
     def __init__(self, options=None):

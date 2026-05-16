@@ -361,9 +361,8 @@ class Dot2PGFConv(DotConvBase):
     def draw_bezier(self, drawop, style=None):
         s = ""
         c, points = drawop
-        pp = []
-        for point in points:
-            pp.append("(%sbp,%sbp)" % (smart_float(point[0]), smart_float(point[1])))
+        pp = ["(%sbp,%sbp)" % (smart_float(point[0]), smart_float(point[1]))
+              for point in points]
 
         pstrs = ["%s .. controls %s and %s " % p for p in nsplit(pp, 3)]
         stylestr = ''

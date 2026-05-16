@@ -50,7 +50,7 @@ def nsplit(seq, n=2):
     >>> nsplit('aabbcc',n=4)
     [('a', 'a', 'b', 'b')]
     """
-    return [xy for xy in zip(*[iter(seq)] * n)]
+    return list(zip(*[iter(seq)] * n))
 
 
 def chunks(s, cl):
@@ -101,7 +101,7 @@ def is_multiline_label(drawobject):
     return any(x in label for x in [r"\n", r"\l", r"\r"])
 
 
-class EndOfGraphElement(object):
+class EndOfGraphElement:
     def __init__(self):
         pass
 

@@ -123,9 +123,8 @@ class Dot2PSTricksConv(DotConvBase):
 
     def draw_bezier(self, drawop, style=None):
         op, points = drawop
-        pp = []
-        for point in points:
-            pp.append("(%sbp,%sbp)" % (smart_float(point[0]), smart_float(point[1])))
+        pp = ["(%sbp,%sbp)" % (smart_float(point[0]), smart_float(point[1]))
+              for point in points]
 
         arrowstyle = ""
         return r"  \psbezier{%s}%s\n" % (arrowstyle, "".join(pp))

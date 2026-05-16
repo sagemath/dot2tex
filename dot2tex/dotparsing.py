@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Graphviz dot language parser.
 
 This parser is derived from the the parser distributed with the pydot module.
@@ -80,8 +79,7 @@ def quote_if_necessary(s):
 def flatten(lst):
     for elem in lst:
         if isinstance(elem, (tuple, list)):
-            for i in flatten(elem):
-                yield i
+            yield from flatten(elem)
         else:
             yield elem
 
@@ -277,7 +275,7 @@ SET_DEF_GRAPH_ATTR = 'set_def_graph_attr'
 SET_GRAPH_ATTR = 'set_graph_attr'
 
 
-class DotDataParser(object):
+class DotDataParser:
     """Container class for parsing Graphviz dot data"""
 
     def __init__(self):
@@ -616,7 +614,7 @@ class DotDataParser(object):
             return None
 
 
-class DotDefaultAttr(object):
+class DotDefaultAttr:
     def __init__(self, element_type, **kwds):
         self.element_type = element_type
         self.attr = kwds
@@ -636,7 +634,7 @@ class DotParsingException(Exception):
     """Base class for dotparsing exceptions."""
 
 
-class DotNode(object):
+class DotNode:
     """Class representing a DOT node"""
 
     def __init__(self, name, **kwds):
@@ -682,7 +680,7 @@ class DotNode(object):
             raise AttributeError
 
 
-class DotGraph(object):
+class DotGraph:
     """Class representing a DOT graph"""
 
     def __init__(self, name='G', strict=True, directed=False, **kwds):
@@ -986,7 +984,7 @@ class DotGraph(object):
                 'subgraph', self.get_name(), subgraphstr, attrstr, nodestr, edgestr, padding)
 
 
-class DotEdge(object):
+class DotEdge:
     """Class representing a DOT edge"""
 
     def __init__(self, src, dst, directed=False, src_port="", dst_port="", **kwds):
