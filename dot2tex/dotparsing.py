@@ -23,7 +23,7 @@ import sys
 from pyparsing import (Literal, CaselessLiteral, Word, OneOrMore, Forward,
                        Group, Optional, Combine, restOfLine,
                        cStyleComment, nums, alphanums,
-                       ParseException, CharsNotIn, Suppress, Regex, removeQuotes)
+                       ParseException, CharsNotIn, Suppress, Regex, remove_quotes)
 from pyparsing import __version__ as pyparsing_version
 
 from collections import OrderedDict
@@ -400,12 +400,12 @@ class DotDataParser(object):
         punctuation_ = "".join(c for c in string.punctuation if c not in '_') + string.whitespace
         # token definitions
 
-        identifier = Word(alphanums + "_").setName("identifier")
+        identifier = Word(alphanums + "_").set_name("identifier")
 
         # double_quoted_string = QuotedString('"', multiline=True,escChar='\\',
         #    unquoteResults=True) # dblQuotedString
         double_quoted_string = Regex(r'\"(?:\\\"|\\\\|[^"])*\"', re.MULTILINE)
-        double_quoted_string.setParseAction(removeQuotes)
+        double_quoted_string.set_parse_action(remove_quotes)
         quoted_string = Combine(double_quoted_string +
                                 Optional(OneOrMore(pluss + double_quoted_string)), adjacent=False)
         alphastring_ = OneOrMore(CharsNotIn(punctuation_))
@@ -416,83 +416,83 @@ class DotDataParser(object):
         opener = '<'
         closer = '>'
         try:
-            html_text = pyparsing.nestedExpr(opener, closer,
+            html_text = pyparsing.nested_expr(opener, closer,
                                              ((CharsNotIn(
-                                                 opener + closer).setParseAction(lambda t: t[0]))
-                                              )).setParseAction(parse_html)
+                                                 opener + closer).set_parse_action(lambda t: t[0]))
+                                              )).set_parse_action(parse_html)
         except Exception:
-            log.debug('nestedExpr not available.')
+            log.debug('nested_expr not available.')
             log.warning('Old version of pyparsing detected. Version 1.4.8 or '
                         'later is recommended. Parsing of html labels may not '
                         'work properly.')
             html_text = Combine(Literal("<<") + OneOrMore(CharsNotIn(",]")))
 
         float_number = Combine(Optional(minus) +
-                               OneOrMore(Word(nums + "."))).setName("float_number")
+                               OneOrMore(Word(nums + "."))).set_name("float_number")
 
         ID = (alphastring_ | html_text | float_number |
-              quoted_string |  # .setParseAction(strip_quotes) |
-              identifier).setName("ID")
+              quoted_string |  # .set_parse_action(strip_quotes) |
+              identifier).set_name("ID")
 
-        righthand_id = (float_number | ID).setName("righthand_id")
+        righthand_id = (float_number | ID).set_name("righthand_id")
 
-        port_angle = (at + ID).setName("port_angle")
+        port_angle = (at + ID).set_name("port_angle")
 
         port_location = ((OneOrMore(Group(colon + ID)) |
-                          Group(colon + lparen + ID + comma + ID + rparen))).setName("port_location")
+                          Group(colon + lparen + ID + comma + ID + rparen))).set_name("port_location")
 
         port = Combine((Group(port_location + Optional(port_angle)) |
-                        Group(port_angle + Optional(port_location)))).setName("port")
+                        Group(port_angle + Optional(port_location)))).set_name("port")
 
         node_id = (ID + Optional(port))
         a_list = OneOrMore(ID + Optional(equals + righthand_id) +
-                           Optional(comma.suppress())).setName("a_list")
+                           Optional(comma.suppress())).set_name("a_list")
 
         attr_list = OneOrMore(lbrack + Optional(a_list) +
-                              rbrack).setName("attr_list").setResultsName('attrlist')
+                              rbrack).set_name("attr_list").set_results_name('attrlist')
 
-        attr_stmt = ((graph_ | node_ | edge_) + attr_list).setName("attr_stmt")
+        attr_stmt = ((graph_ | node_ | edge_) + attr_list).set_name("attr_stmt")
 
-        edgeop = (Literal("--") | Literal("->")).setName("edgeop")
+        edgeop = (Literal("--") | Literal("->")).set_name("edgeop")
 
         stmt_list = Forward()
         graph_stmt = (lbrace + Optional(stmt_list) +
-                      rbrace + Optional(semi)).setName("graph_stmt")
+                      rbrace + Optional(semi)).set_name("graph_stmt")
 
         edge_point = Forward()
 
         edgeRHS = OneOrMore(edgeop + edge_point)
         edge_stmt = edge_point + edgeRHS + Optional(attr_list)
 
-        subgraph = (Optional(subgraph_, '') + Optional(ID, '') + Group(graph_stmt)).setName("subgraph").setResultsName(
+        subgraph = (Optional(subgraph_, '') + Optional(ID, '') + Group(graph_stmt)).set_name("subgraph").set_results_name(
             'ssubgraph')
 
         edge_point <<= (subgraph | graph_stmt | node_id)
 
-        node_stmt = (node_id + Optional(attr_list) + Optional(semi)).setName("node_stmt")
+        node_stmt = (node_id + Optional(attr_list) + Optional(semi)).set_name("node_stmt")
 
-        assignment = (ID + equals + righthand_id).setName("assignment")
-        stmt = (assignment | edge_stmt | attr_stmt | subgraph | graph_stmt | node_stmt).setName("stmt")
+        assignment = (ID + equals + righthand_id).set_name("assignment")
+        stmt = (assignment | edge_stmt | attr_stmt | subgraph | graph_stmt | node_stmt).set_name("stmt")
         stmt_list <<= OneOrMore(stmt + Optional(semi))
 
         graphparser = ((Optional(strict_, 'notstrict') + ((graph_ | digraph_)) +
-                        Optional(ID, '') + lbrace + Group(Optional(stmt_list)) + rbrace).setResultsName("graph"))
+                        Optional(ID, '') + lbrace + Group(Optional(stmt_list)) + rbrace).set_results_name("graph"))
 
         singleLineComment = Group("//" + restOfLine) | Group("#" + restOfLine)
 
         # actions
         graphparser.ignore(singleLineComment)
         graphparser.ignore(cStyleComment)
-        node_id.setParseAction(self._proc_node_id)
-        assignment.setParseAction(self._proc_attr_assignment)
-        a_list.setParseAction(self._proc_attr_list)
-        edge_stmt.setParseAction(self._proc_edge_stmt)
-        node_stmt.setParseAction(self._proc_node_stmt)
-        attr_stmt.setParseAction(self._proc_default_attr_stmt)
-        attr_list.setParseAction(self._proc_attr_list_combine)
-        subgraph.setParseAction(self._proc_subgraph_stmt)
-        # graph_stmt.setParseAction(self._proc_graph_stmt)
-        graphparser.setParseAction(self._main_graph_stmt)
+        node_id.set_parse_action(self._proc_node_id)
+        assignment.set_parse_action(self._proc_attr_assignment)
+        a_list.set_parse_action(self._proc_attr_list)
+        edge_stmt.set_parse_action(self._proc_edge_stmt)
+        node_stmt.set_parse_action(self._proc_node_stmt)
+        attr_stmt.set_parse_action(self._proc_default_attr_stmt)
+        attr_list.set_parse_action(self._proc_attr_list_combine)
+        subgraph.set_parse_action(self._proc_subgraph_stmt)
+        # graph_stmt.set_parse_action(self._proc_graph_stmt)
+        graphparser.set_parse_action(self._main_graph_stmt)
         return graphparser
 
     def build_graph(self, graph, tokens):
@@ -577,7 +577,7 @@ class DotDataParser(object):
         """Parse dot data and return a DotGraph instance"""
         try:
             try:
-                self.dotparser.parseWithTabs()
+                self.dotparser.parse_with_tabs()
             except Exception:
                 log.warning('Old version of pyparsing. Parser may not work correctly')
             if isinstance(data, bytes):
@@ -585,7 +585,7 @@ class DotDataParser(object):
             ndata = data.replace('\\\n', '')
             # lines = data.splitlines()
             # lines = [l.rstrip('\\') for l in lines]
-            tokens = self.dotparser.parseString(ndata)
+            tokens = self.dotparser.parse_string(ndata)
             self.build_top_graph(tokens[0])
             return self.graph
 
@@ -600,11 +600,11 @@ class DotDataParser(object):
         """Parse dot data"""
         try:
             try:
-                self.dotparser.parseWithTabs()
+                self.dotparser.parse_with_tabs()
             except Exception:
                 log.warning('Old version of pyparsing. Parser may not work correctly')
 
-            tokens = self.dotparser.parseString(data)
+            tokens = self.dotparser.parse_string(data)
             self.build_top_graph(tokens[0])
 
             return tokens[0]
