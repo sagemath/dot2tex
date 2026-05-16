@@ -51,7 +51,7 @@ def create_xdot(dotdata, prog='dot', options=''):
     try:
         error_data = stderr.read()
         if error_data:
-            if b'Error:' in error_data:
+            if 'Error:' in error_data:
                 log.error("Graphviz returned with the following message: %s", error_data)
             else:
                 # Graphviz raises a lot of warnings about too small labels,
