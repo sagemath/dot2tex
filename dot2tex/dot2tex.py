@@ -31,7 +31,7 @@ from .pgfformat import Dot2PGFConv, Dot2TikZConv, PositionsDotConv
 from .pstricksformat import Dot2PSTricksConv, Dot2PSTricksNConv
 
 __author__ = 'Kjell Magne Fauske'
-__version__ = '2.12.dev'
+__version__ = '2.12.0'
 __license__ = 'MIT'
 
 import argparse

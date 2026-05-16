@@ -7,9 +7,9 @@ dot2tex - A Graphviz to LaTeX converter
 
 License: MIT (See LICENSE for details.)
 
-Version: 2.12.dev
+Version: 2.12.0
 
-URL: https://github.com/xyz2tex/dot2tex
+URL: https://github.com/sagemath/dot2tex
 
 Documentation: http://dot2tex.readthedocs.org/
 
@@ -72,11 +72,11 @@ some extra information in the ``setup.py`` file that distutils does not understa
 Development version
 -------------------
 
-The development version of ``dot2tex`` is  [available on GitHub](https://github.com/kjellmf/dot2tex).
+The development version of ``dot2tex`` is  [available on GitHub](https://github.com/sagemath/dot2tex).
 
 Contribute
 ==========
 
-- Issue tracker: https://github.com/kjellmf/dot2tex/issues
-- Source code: https://github.com/kjellmf/dot2tex
+- Issue tracker: https://github.com/sagemath/dot2tex/issues
+- Source code: https://github.com/sagemath/dot2tex
 

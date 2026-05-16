@@ -3,10 +3,13 @@ dot2tex change log
 
 Here you can see the full list of changes between each dot2tex release.
 
-2.12.dev
+2.12.0
 --------
 
 - Major code refactoring
+- Dropped python2
+- Fixed deprecations
+- Ownership transfer to sagemath
 
 2.11.3
 ------

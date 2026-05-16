@@ -2,7 +2,7 @@ dot2tex - A Graphviz to LaTeX converter
 =======================================
 
 :Author: Kjell Magne Fauske
-:Version: 2.12.dev
+:Version: 2.12.0
 :Licence: MIT_
 
 
