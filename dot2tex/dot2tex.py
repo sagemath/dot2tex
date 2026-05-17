@@ -280,7 +280,7 @@ def main(run_as_module=False, dotdata=None, options=None):
         sys.exit(0)
 
     if options.debug:
-        # initalize log handler
+        # initialize log handler
         hdlr = logging.FileHandler('./dot2tex.log', mode='w', encoding='utf-8')
         log.addHandler(hdlr)
         formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
