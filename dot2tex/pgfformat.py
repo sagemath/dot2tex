@@ -296,10 +296,7 @@ class Dot2PGFConv(DotConvBase):
 
     def draw_ellipse(self, drawop, style=None):
         op, x, y, w, h = drawop
-        if op == 'E':
-            should_fill = True
-        else:
-            should_fill = False
+        should_fill = (op == 'E')
 
         if style:
             stylestr = " [%s]" % style
@@ -359,7 +356,6 @@ class Dot2PGFConv(DotConvBase):
         return s
 
     def draw_bezier(self, drawop, style=None):
-        s = ""
         c, points = drawop
         pp = ["(%sbp,%sbp)" % (smart_float(point[0]), smart_float(point[1]))
               for point in points]
