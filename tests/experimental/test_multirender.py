@@ -7,7 +7,7 @@ from string import Template
 import logging
 import unittest
 
-# intitalize logging module
+# initialize logging module
 log = logging.getLogger("test_graphparser")
 console = logging.StreamHandler()
 console.setLevel(logging.WARNING)
