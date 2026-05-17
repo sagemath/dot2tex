@@ -59,7 +59,6 @@ log = logging.getLogger("dot2tex")
 # c 5 -black F 14.000000 11 -Times-Roman T 99 159 0 44 8 -a_1 test
 
 
-
 helpmsg = """Failed to parse the input data. Is it a valid dot file?
 Try to input xdot data directly. Example:
     dot -Txdot file.dot | dot2tex > file.tex
@@ -282,7 +281,7 @@ def main(run_as_module=False, dotdata=None, options=None):
 
     if options.debug:
         # initalize log handler
-        hdlr = logging.FileHandler('./dot2tex.log',mode='w', encoding='utf-8')
+        hdlr = logging.FileHandler('./dot2tex.log', mode='w', encoding='utf-8')
         log.addHandler(hdlr)
         formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
         hdlr.setFormatter(formatter)
@@ -450,7 +449,7 @@ def main(run_as_module=False, dotdata=None, options=None):
             s = conv.convert(s)
             log.debug('Output after preprocessing:\n%s', s)
         if options.outputfile:
-            with open(options.outputfile, 'w' ,encoding="utf-8") as f:
+            with open(options.outputfile, 'w', encoding="utf-8") as f:
                 f.write(s)
         else:
             if not run_as_module:
@@ -495,4 +494,3 @@ def convert_graph(dotsource, **kwargs):
     options.__dict__.update(kwargs)
     tex = main(True, dotsource, options)
     return tex
-
