@@ -6,7 +6,7 @@ import re, os, shutil, glob, sys, logging
 
 from os.path import join, basename, splitext, normpath, abspath
 
-# intitalize logging module
+# initialize logging module
 log = logging.getLogger("test_graphparser")
 console = logging.StreamHandler()
 console.setLevel(logging.WARNING)
