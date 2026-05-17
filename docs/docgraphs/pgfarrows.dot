@@ -1,5 +1,5 @@
 // Examples of PGF/TikZ style arrows. See chapter 14.1 in the PGF/TikZ manual
-// for all availale arrow styles. 
+// for all available arrow styles. 
 // To generate this graph you can write:
 // $ circo -Txdot pgfarrows.dot | dot2tex.py > pgfarrows.tex
 digraph G {
