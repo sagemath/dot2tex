@@ -232,7 +232,7 @@ def create_options_parser():
 
 
 def process_cmd_line():
-    """Set up and parse command line options"""
+    """Set up and parse command line options."""
 
     parser = create_options_parser()
     options = parser.parse_args()
@@ -258,7 +258,7 @@ def load_dot_file(filename):
 
 
 def main(run_as_module=False, dotdata=None, options=None):
-    """Run dot2tex and convert graph
+    """Run dot2tex and convert graph.
 
     """
     import platform
@@ -478,7 +478,7 @@ def main(run_as_module=False, dotdata=None, options=None):
 
 
 def convert_graph(dotsource, **kwargs):
-    """Process dotsource and return LaTeX code
+    """Process dotsource and return LaTeX code.
 
     Conversion options can be specified as keyword options. Example:
         convert_graph(data,format='tikz',crop=True)
@@ -492,5 +492,4 @@ def convert_graph(dotsource, **kwargs):
         del kwargs['preproc']
 
     options.__dict__.update(kwargs)
-    tex = main(True, dotsource, options)
-    return tex
+    return main(True, dotsource, options)
