@@ -321,8 +321,8 @@ class Dot2PGFConv(DotConvBase):
         else:
             stylestr = ''
         return self.draw_with_opacity(
-                "%s %s -- cycle" % (stylestr, " -- ".join(pp)),
-                fill=should_fill)
+            "%s %s -- cycle" % (stylestr, " -- ".join(pp)),
+            fill=should_fill)
 
     def draw_polyline(self, drawop, style=None):
         op, points = drawop
@@ -363,7 +363,7 @@ class Dot2PGFConv(DotConvBase):
         pstrs = ["%s .. controls %s and %s " % p for p in nsplit(pp, 3)]
         stylestr = ''
         return self.draw_with_opacity(
-                "%s %s .. %s" % (stylestr, " .. ".join(pstrs), pp[-1]))
+            "%s %s .. %s" % (stylestr, " .. ".join(pstrs), pp[-1]))
 
     def do_edges(self):
         s = ""
@@ -379,7 +379,7 @@ class Dot2PGFConv(DotConvBase):
             # Note that the order of the draw strings should be the same
             # as in the xdot output.
             drawstring = general_draw_string + " " + head_arrow_string + " " + tail_arrow_string \
-                         + " " + label_string
+                + " " + label_string
             draw_operations, stat = parse_drawstring(drawstring)
             if not drawstring.strip():
                 continue
@@ -456,7 +456,7 @@ class Dot2PGFConv(DotConvBase):
             dst = pp[-1]
             if topath:
                 s += "  \\draw [%s] %s to[%s]%s %s;\n" % (stylestr, src,
-                                                         topath, extra, dst)
+                                                          topath, extra, dst)
             elif not self.options.get('straightedges'):
                 s += "  \\draw [%s] %s ..%s %s;\n" % (stylestr, " .. ".join(pstrs), extra, pp[-1])
             else:
@@ -708,13 +708,13 @@ class Dot2TikZConv(Dot2PGFConv):
     def set_options(self):
         Dot2PGFConv.set_options(self)
         self.options['tikzedgelabels'] = self.options.get('tikzedgelabels', '') \
-                                         or getboolattr(self.main_graph, 'd2ttikzedgelabels', '')
+            or getboolattr(self.main_graph, 'd2ttikzedgelabels', '')
         self.options['styleonly'] = self.options.get('styleonly', '') \
-                                    or getboolattr(self.main_graph, 'd2tstyleonly', '')
+            or getboolattr(self.main_graph, 'd2tstyleonly', '')
         self.options['nodeoptions'] = self.options.get('nodeoptions', '') \
-                                      or getattr(self.main_graph, 'd2tnodeoptions', '')
+            or getattr(self.main_graph, 'd2tnodeoptions', '')
         self.options['edgeoptions'] = self.options.get('edgeoptions', '') \
-                                      or getattr(self.main_graph, 'd2tedgeoptions', '')
+            or getattr(self.main_graph, 'd2tedgeoptions', '')
 
     def output_node_comment(self, node):
         # With the node syntax comments are unnecessary
@@ -804,20 +804,20 @@ class Dot2TikZConv(Dot2PGFConv):
             xlabel = None
             if 'xlabel' in node.attr or 'texxlbl' in node.attr:
                 xlabel = self.get_label(node, label_attribute="xlabel", tex_label_attribute="texxlbl")
-            #xlabel = node.attr['xlabel'] if 'xlabel' in node.attr else None
+            # xlabel = node.attr['xlabel'] if 'xlabel' in node.attr else None
             if xlabel is not None:
-                #xlpos = "%sbp,%sbp" % (smart_float(str(float(x)+len(xlabel)*5)), smart_float(y))
+                # xlpos = "%sbp,%sbp" % (smart_float(str(float(x)+len(xlabel)*5)), smart_float(y))
                 xlp = getattr(node, 'xlp', None)
                 if not xlp:
                     # The input file had texxlbl, but had no xlabel,
                     # so graphviz didn't generate xlp
                     xlp = x + ',' + 'y'
                 xlpx, xlpy = xlp.split(',')
-                xlpx = str(abs(float(x)-float(xlpx))+float(x))
+                xlpx = str(abs(float(x) - float(xlpx)) + float(x))
                 xlpy = y
                 xlpos = "%sbp,%sbp" % (smart_float(xlpx), smart_float(xlpy))
                 sn += "  \\node (%s) at (%s) [%s] {%s};\n" % \
-                      (tikzify(node.name+"xl"), xlpos, "", xlabel)
+                      (tikzify(node.name + "xl"), xlpos, "", xlabel)
             if shape == "coordinate":
                 sn += "  \\coordinate (%s) at (%s);\n" % (tikzify(node.name), pos)
             elif self.options.get('styleonly'):
@@ -828,7 +828,7 @@ class Dot2TikZConv(Dot2PGFConv):
                 drawstr = 'draw'
                 if style.strip() == 'filled':
                     fillcolor = node.attr.get('fillcolor') or \
-                                node.attr.get('color') or "gray"
+                        node.attr.get('color') or "gray"
                     drawstr = 'fill,draw'
                     style = ''
                     if color:
@@ -911,7 +911,7 @@ class Dot2TikZConv(Dot2PGFConv):
                 styles = [arrowstyle]
 
             if edgestyle:
-                edgestyles = [self.styles.get(key.strip(), key.strip()) \
+                edgestyles = [self.styles.get(key.strip(), key.strip())
                               for key in edgestyle.split(',') if key]
                 styles.extend(edgestyles)
 
@@ -949,10 +949,10 @@ class Dot2TikZConv(Dot2PGFConv):
 
             if topath:
                 s += "  \\draw [%s] (%s) to[%s]%s (%s);\n" % (stylestr, src,
-                                                             topath, extra, dst)
+                                                              topath, extra, dst)
             elif not self.options.get('straightedges'):
                 s += "  \\draw [%s] %s ..%s (%s);\n" % (stylestr,
-                                                       " .. ".join(pstrs), extra, dst)
+                                                        " .. ".join(pstrs), extra, dst)
             else:
                 s += "  \\draw [%s] (%s) --%s (%s);\n" % (stylestr, src, extra, dst)
 
