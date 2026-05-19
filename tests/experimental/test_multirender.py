@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 from os.path import join, basename, splitext, normpath, abspath
 
@@ -6,7 +7,7 @@ from string import Template
 import logging
 import unittest
 
-# intitalize logging module
+# initialize logging module
 log = logging.getLogger("test_graphparser")
 console = logging.StreamHandler()
 console.setLevel(logging.WARNING)
@@ -16,12 +17,12 @@ formatter = logging.Formatter('%(levelname)-8s %(message)s')
 console.setFormatter(formatter)
 log.addHandler(console)
 
-#LOG_FILENAME = splitext(__file__)[0]+'.log'
-#hdlr = logging.FileHandler(LOG_FILENAME)
-#log.addHandler(hdlr)
-#formatter = logging.Formatter('%(levelname)-8s %(message)s')
-#hdlr.setFormatter(formatter)
-#log.setLevel(logging.INFO)
+# LOG_FILENAME = splitext(__file__)[0]+'.log'
+# hdlr = logging.FileHandler(LOG_FILENAME)
+# log.addHandler(hdlr)
+# formatter = logging.Formatter('%(levelname)-8s %(message)s')
+# hdlr.setFormatter(formatter)
+# log.setLevel(logging.INFO)
 
 # Directory with test files
 BASE_DIR = join(abspath(os.path.dirname(__file__)), "")
@@ -31,7 +32,7 @@ DEST_DIR = join(BASE_DIR, 'tmp/')
 
 
 def runcmd(syscmd):
-    #err = os.system(syscmd)
+    # err = os.system(syscmd)
     sres = os.popen(syscmd)
     resdata = sres.read()
     err = sres.close()
@@ -45,20 +46,23 @@ def meps(filename):
     fn = splitext(filename)[0]
     s = "latex -halt-on-error -interaction nonstopmode %s.tex" % fn
     err = runcmd(s)
-    if err: return err
+    if err:
+        return err
     if sys.platform == 'win32':
         s = "dvips -Ppdf -G0 -D600 -E* -o%s.eps %s.dvi" % (fn, fn)
         err = runcmd(s)
-        if err: return err
+        if err:
+            return err
         s = "epstool --bbox --copy --output %s_tmp.eps %s.eps" % (fn, fn)
         err = runcmd(s)
-        if err: return err
+        if err:
+            return err
         try:
             os.remove("%s.eps" % fn)
             os.remove("%s.dvi" % fn)
             os.remove("%s.aux" % fn)
             os.remove("%s.log" % fn)
-        #os.remove("%s.pgf" % fn)
+        # os.remove("%s.pgf" % fn)
 
         except:
             raise
@@ -70,7 +74,8 @@ def meps(filename):
         err = runcmd(s)
         s = "ps2eps -B -f %s.ps" % fn
         err = runcmd(s)
-        if err: return err
+        if err:
+            return err
         s = "epstopdf %s.eps" % fn
         err = runcmd(s)
 
@@ -126,7 +131,7 @@ def create_original(dotfilename):
     syscmd = 'dot -Tps2 %s > %s.ps' % (dotfilename, destfile)
     err = runcmd(syscmd)
     syscmd = 'ps2pdf %s.ps' % (destfile)
-    #os.remove("%s.ps" % destfile)
+    # os.remove("%s.ps" % destfile)
     err = runcmd(syscmd)
     os.chdir(cwd)
     return err
@@ -140,7 +145,7 @@ def create_tikz(dotfilename):
     cwd = os.getcwd()
     os.chdir(os.path.dirname(destfile))
     err = create_pdf(destfile)
-    #os.remove(destfile)
+    # os.remove(destfile)
     os.chdir(cwd)
     return err
 
@@ -153,7 +158,7 @@ def create_pgf(dotfilename):
     cwd = os.getcwd()
     os.chdir(os.path.dirname(destfile))
     err = create_pdf(destfile)
-    #os.remove(destfile)
+    # os.remove(destfile)
     os.chdir(cwd)
     return err
 
@@ -165,8 +170,8 @@ def create_pst(dotfilename):
     err = runcmd(syscmd)
     cwd = os.getcwd()
     os.chdir(os.path.dirname(destfile))
-    #syscmd = 'meps %s' % (basename(destfile))
-    #err = runcmd(syscmd)
+    # syscmd = 'meps %s' % (basename(destfile))
+    # err = runcmd(syscmd)
     err = meps(basename(destfile))
     os.chdir(cwd)
     return err
@@ -175,15 +180,14 @@ def create_pst(dotfilename):
 def create_comparefile(dotfilename):
     basefn = basename(dotfilename)
     destfile = normpath(join(DEST_DIR, splitext(basefn)[0])) + '_cmp.tex'
-    f = open(destfile, 'w')
-    f.write(s.substitute(testfile=splitext(basefn)[0]))
-    f.close()
+    with open(destfile, 'w') as f:
+        f.write(s.substitute(testfile=splitext(basefn)[0]))
     cwd = os.getcwd()
     os.chdir(os.path.dirname(destfile))
     err = create_pdf(destfile)
-    #if sys.platform=='win32':
-    #    syscmd = "start %s" % splitext(basename(destfile))[0]+'.pdf'
-    #    err = runcmd(syscmd)
+    # if sys.platform=='win32':
+    #     syscmd = "start %s" % splitext(basename(destfile))[0]+'.pdf'
+    #     err = runcmd(syscmd)
 
     os.chdir(cwd)
 
@@ -197,13 +201,17 @@ def create_comparefile(dotfilename):
 
 def compare_output(testdotfile):
     err = create_original(testdotfile)
-    if err: return err
+    if err:
+        return err
     err = create_tikz(testdotfile)
-    if err: return err
+    if err:
+        return err
     err = create_pgf(testdotfile)
-    if err: return err
+    if err:
+        return err
     err = create_pst(testdotfile)
-    if err: return err
+    if err:
+        return err
     err = create_comparefile(testdotfile)
     return err
 
@@ -228,7 +236,6 @@ def confirm(prompt=None, resp=False):
     True
 
     """
-
     if prompt is None:
         prompt = 'Confirm'
 
@@ -270,37 +277,37 @@ class RenderTest(unittest.TestCase):
 
     def test_autosize(self):
         fn = 'autosize.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_compassports(self):
         fn = 'compassports.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_concentrate(self):
         fn = 'concentrate.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_escstr(self):
         fn = 'escstr.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_invis(self):
         fn = 'invis.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_nodenames(self):
         fn = 'nodenames.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_colors(self):
         fn = 'colors.dot'
-        self.failUnless(run_rendertest(fn))
+        self.assertTrue(run_rendertest(fn))
         self.cmplist.append(fn)
 
     def test_zzzzzzzzzzzfinal(self):
@@ -311,7 +318,7 @@ class RenderTest(unittest.TestCase):
             flist.append(normpath(join(splitext(basefn)[0])) + '_cmp.pdf')
         s = "pdftk %s cat output testrenders.pdf dont_ask" % " ".join(flist)
         err = runcmd(s)
-        self.failIf(err)
+        self.assertFalse(err)
         if sys.platform == 'win32':
             syscmd = "start %s" % 'testrenders.pdf'
             err = runcmd(syscmd)
@@ -321,5 +328,5 @@ class RenderTest(unittest.TestCase):
 testdotfile2 = normpath(join(TESTFILES_PATH, 'compassports.dot'))
 
 if __name__ == '__main__':
-    #compare_output(testdotfile2)
+    # compare_output(testdotfile2)
     unittest.main()
