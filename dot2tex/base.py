@@ -216,6 +216,8 @@ class DotConvBase:
     """Dot2TeX converter base"""
 
     def __init__(self, options=None):
+        if options is None:
+            options = {}
         self.color = ""
         self.opacity = None
         self.stroke_opacity = None
@@ -723,9 +725,8 @@ class DotConvBase:
     def output(self):
         self.init_template_vars()
         template = self.clean_template(self.template)
-        code = replace_tags(template, self.templatevars,
+        return replace_tags(template, self.templatevars,
                             self.templatevars)
-        return code
 
     def get_label(self, drawobj, label_attribute="label", tex_label_attribute="texlbl"):
         text = ""

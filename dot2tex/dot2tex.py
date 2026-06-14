@@ -262,6 +262,8 @@ def main(run_as_module=False, dotdata=None, options=None):
 
     """
     import platform
+    if options is None:
+        options = {}
 
     global log
     if not run_as_module:
