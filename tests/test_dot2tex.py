@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import unittest
+import re
 
 from pyparsing import ParseException
 
 import dot2tex
-import re
 from dot2tex.utils import smart_float, is_multiline_label
 
 testgraph = """
