@@ -127,7 +127,7 @@ class DotparsingTest(unittest.TestCase):
     def test_quoting(self):
         self.assertEqual(test_dotfile("quoting.dot"), 1)
 
-    # the following three files are missing, so desactivate
+    # the following three files are missing, so deactivate
 
     # def test_unicode1(self):
     #     self.assertEqual(test_dotfile("unicode1.dot"), 1)

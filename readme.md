@@ -22,8 +22,7 @@ Before you install dot2tex you have to have a working Python environment
 installed on your system. Dot2tex works with Python 3. In addition
 you will need the following modules:
 
-* [pyparsing](https://github.com/pyparsing/pyparsing). A recent version is required.
-      Older version like for instance 1.3.2 does not work with dot2tex.
+* [pyparsing](https://github.com/pyparsing/pyparsing). A recent version is required, at least version 3.0.
 * [preview](https://ctan.org/pkg/preview)
       A stand-alone part of the preview-latex bundle.
       Required for preprocessing graphs with LaTeX.
