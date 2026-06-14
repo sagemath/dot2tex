@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import sys
 
 from os.path import join, basename, splitext, normpath, abspath
@@ -25,10 +26,10 @@ log.addHandler(console)
 # log.setLevel(logging.INFO)
 
 # Directory with test files
-BASE_DIR = join(abspath(os.path.dirname(__file__)), "")
+BASE_DIR = Path(__file__).absolute().parent.parent
 TESTFILES_DIR = "testgraphs/"
-TESTFILES_PATH = join(BASE_DIR, TESTFILES_DIR)
-DEST_DIR = join(BASE_DIR, 'tmp/')
+TESTFILES_PATH = BASE_DIR / TESTFILES_DIR
+DEST_DIR = BASE_DIR / 'tmp/'
 
 
 def runcmd(syscmd):
