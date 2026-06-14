@@ -7,7 +7,7 @@ Dependencies
 The following software and modules are required to run dot2tex:
 
 - Python_ 3.x.
-- pyparsing_. Version 1.4.8 or later is required.
+- pyparsing_. Version 3.0 or later is required.
 - Graphviz_. A recent version is required.
 - preview_. A LaTeX package for extracting parts of a document. A free-standing part of the `preview-latex`_/`AUCTeX`_ bundle.
 - `PGF/TikZ`_ version 2.0 or later.
