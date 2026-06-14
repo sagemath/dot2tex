@@ -1,8 +1,13 @@
 """
 Script to build the the dot2tex examples.
 """
-
-import re, os, shutil, glob, sys, logging
+import glob
+import logging
+import os
+import re
+import shutil
+import subprocess
+import sys
 
 from os.path import join, basename, splitext, normpath, abspath
 
@@ -30,7 +35,8 @@ def copyifnewer(source, dest):
         source_ts = os.path.getmtime(source)
         dest_ts = os.path.getmtime(dest)
         # compare timestamps
-        if source_ts > dest_ts: copy = True
+        if source_ts > dest_ts:
+            copy = True
     else:
         copy = True
         dir = os.path.dirname(dest)
@@ -42,13 +48,14 @@ def copyifnewer(source, dest):
 
 
 def runcmd(syscmd):
-    #err = os.system(syscmd)
-    sres = os.popen(syscmd)
-    resdata = sres.read()
-    err = sres.close()
+    """
+    Run a system command.
+    """
+    result = subprocess.run(syscmd, text=True, capture_output=True)
+    err = result.returncode
     if err:
         log.warning('Failed to run command:\n%s', syscmd)
-        log.debug('Output:\n%s', resdata)
+        log.debug('Output:\n%s', result)
     return err
 
 
@@ -56,22 +63,25 @@ def meps(filename):
     fn = splitext(filename)[0]
     s = "latex -halt-on-error -interaction nonstopmode %s.tex" % fn
     err = runcmd(s)
-    if err: return err
+    if err:
+        return err
     if sys.platform == 'win32':
         s = "dvips -Ppdf -G0 -D600 -E* -o%s.eps %s.dvi" % (fn, fn)
         err = runcmd(s)
-        if err: return err
+        if err:
+            return err
         s = "epstool --bbox --copy --output %s_tmp.eps %s.eps" % (fn, fn)
         err = runcmd(s)
-        if err: return err
+        if err:
+            return err
         try:
             os.remove("%s.eps" % fn)
             os.remove("%s.dvi" % fn)
             os.remove("%s.aux" % fn)
             os.remove("%s.log" % fn)
-        #os.remove("%s.pgf" % fn)
+        # os.remove("%s.pgf" % fn)
 
-        except:
+        except OSError:
             raise
         os.rename("%s_tmp.eps" % fn, "%s.eps" % fn)
         s = "epstopdf %s.eps" % fn
@@ -81,7 +91,8 @@ def meps(filename):
         err = runcmd(s)
         s = "ps2eps -B -f %s.ps" % fn
         err = runcmd(s)
-        if err: return err
+        if err:
+            return err
         s = "epstopdf %s.eps" % fn
         err = runcmd(s)
 
@@ -117,9 +128,9 @@ def make_img(c, filenm, name):
         return err
 
     if (c.find('--crop') > -1):
-        #os.system('del %s.png %s.jpg' % (name,name))
+        # os.system('del %s.png %s.jpg' % (name,name))
         err = create_pdf(filename)
-        #print("using mppdf")
+        # print("using mppdf")
     else:
         err = meps(filename)
 
@@ -127,14 +138,12 @@ def make_img(c, filenm, name):
 
 
 def build_gallery(filelist):
-    #os.chdir(EXAMPLES_DIR)
-    entrylist = []
+    # os.chdir(EXAMPLES_DIR)
     failedfiles = []
     for file in filelist:
         f = open(file, 'r')
         data = f.read()
         f.close()
-        entry = {}
         dirname, filename = os.path.split(file)
         os.chdir(dirname)
         name = os.path.splitext(filename)[0]
@@ -167,13 +176,10 @@ if __name__ == "__main__":
 
     failedfiles = build_gallery(filelist)
     if failedfiles:
-        log.warning('Failed files: %s', failedfiles);
+        log.warning('Failed files: %s', failedfiles)
         sys.exit(1)
     else:
         print("All tests passed!")
         sys.exit(0)
 
-        #filelist=['distances.dot','tikzshapes.dot']
-
-
-
+        # filelist=['distances.dot','tikzshapes.dot']
