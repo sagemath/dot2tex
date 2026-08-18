@@ -1,7 +1,7 @@
 import logging
 
-from .base import DotConvBase, parse_drawstring, get_drawobj_lblstyle
-from .utils import smart_float, nsplit, getboolattr, tikzify
+from .base import DotConvBase, get_drawobj_lblstyle, parse_drawstring
+from .utils import getboolattr, nsplit, smart_float, tikzify
 
 log = logging.getLogger("dot2tex")
 
@@ -171,13 +171,16 @@ class Dot2PGFConv(DotConvBase):
                 self.template = PGF210_TEMPLATE
             else:
                 self.template = PGF_TEMPLATE
-        self.styles = dict(dashed='dashed', dotted='dotted',
-                           bold='very thick', filled='fill', invis="",
-                           rounded='rounded corners', )
-        self.dashstyles = dict(
-            dashed=r'\pgfsetdash{{3pt}{3pt}}{0pt}',
-            dotted=r'\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
-            bold=r'\pgfsetlinewidth{1.2pt}')
+        self.styles = {
+            'dashed': 'dashed', 'dotted': 'dotted',
+            'bold': 'very thick', 'filled': 'fill', 'invis': '',
+            'rounded': 'rounded corners'
+        }
+        self.dashstyles = {
+            'dashed': r'\pgfsetdash{{3pt}{3pt}}{0pt}',
+            'dotted': r'\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
+            'bold': r'\pgfsetlinewidth{1.2pt}'
+        }
 
     def start_node(self, node):
         # Todo: Should find a more elegant solution
@@ -267,12 +270,9 @@ class Dot2PGFConv(DotConvBase):
         return s
 
     def set_style(self, drawop):
-        c, style = drawop
+        _, style = drawop
         pgfstyle = self.dashstyles.get(style, "")
-        if pgfstyle:
-            return "  %s\n" % pgfstyle
-        else:
-            return ""
+        return f"  {pgfstyle}\n" if pgfstyle else ""
 
     def filter_styles(self, style):
         filtered_styles = []
@@ -299,36 +299,27 @@ class Dot2PGFConv(DotConvBase):
     def draw_ellipse(self, drawop, style=None):
         op, x, y, w, h = drawop
         should_fill = (op == 'E')
-
-        if style:
-            stylestr = " [%s]" % style
-        else:
-            stylestr = ''
+        stylestr = f" [{style}]" if style else ''
         return self.draw_with_opacity(
-                "%s (%sbp,%sbp) ellipse (%sbp and %sbp)" % (
-                    stylestr, smart_float(x), smart_float(y),
-                    smart_float(w), smart_float(h)),
-                fill=should_fill)
+            "%s (%sbp,%sbp) ellipse (%sbp and %sbp)" % (
+                stylestr, smart_float(x), smart_float(y),
+                smart_float(w), smart_float(h)),
+            fill=should_fill)
 
     def draw_polygon(self, drawop, style=None):
         op, points = drawop
-        pp = ['(%sbp,%sbp)' % (smart_float(p[0]), smart_float(p[1])) for p in points]
-        if op == 'P':
-            should_fill = True
-        else:
-            should_fill = False
-
-        if style:
-            stylestr = " [%s]" % style
-        else:
-            stylestr = ''
+        pp = ['(%sbp,%sbp)' % (smart_float(p0), smart_float(p1))
+              for p0, p1 in points]
+        should_fill = op == 'P'
+        stylestr = f" [{style}]" if style else ''
         return self.draw_with_opacity(
             "%s %s -- cycle" % (stylestr, " -- ".join(pp)),
             fill=should_fill)
 
     def draw_polyline(self, drawop, style=None):
         op, points = drawop
-        pp = ['(%sbp,%sbp)' % (smart_float(p[0]), smart_float(p[1])) for p in points]
+        pp = ['(%sbp,%sbp)' % (smart_float(p[0]), smart_float(p[1]))
+              for p in points]
         stylestr = ''
         return self.draw_with_opacity("%s %s" % (stylestr, " -- ".join(pp)))
 
@@ -350,7 +341,7 @@ class Dot2PGFConv(DotConvBase):
             alignstr = ""  # centered (default)
         styles.append(alignstr)
         styles.append(style)
-        lblstyle = ",".join([i for i in styles if i])
+        lblstyle = ",".join(i for i in styles if i)
         if lblstyle:
             lblstyle = '[' + lblstyle + ']'
         s = "  \\draw (%sbp,%sbp) node%s {%s};\n" % (smart_float(x), smart_float(y), lblstyle, text)
@@ -448,10 +439,7 @@ class Dot2PGFConv(DotConvBase):
                 # log.warning('label: %s', edgelabel)
 
                 lblstyle = get_drawobj_lblstyle(edge)
-                if lblstyle:
-                    lblstyle = '[' + lblstyle + ']'
-                else:
-                    lblstyle = ''
+                lblstyle = ('[' + lblstyle + ']') if lblstyle else ''
                 if edgelabel:
                     extra = " node%s {%s}" % (lblstyle, edgelabel)
             src = pp[0]
@@ -496,24 +484,21 @@ class Dot2PGFConv(DotConvBase):
         text = node.attr.get('texlbl', '')
         if lblstyle:
             return "  \\tikz \\node[%s] {%s};\n" % (lblstyle, text)
-        else:
-            return r"\tikz \node {" + text + "};"
+        return r"\tikz \node {" + text + "};"
 
     def get_edge_preproc_code(self, edge, attribute="texlbl"):
         lblstyle = edge.attr.get('lblstyle', '')
         text = edge.attr.get(attribute, '')
         if lblstyle:
             return "  \\tikz \\node[%s] {%s};\n" % (lblstyle, text)
-        else:
-            return r"\tikz \node " + "{" + text + "};"
+        return r"\tikz \node " + "{" + text + "};"
 
     def get_graph_preproc_code(self, graph):
         lblstyle = graph.attr.get('lblstyle', '')
         text = graph.attr.get('texlbl', '')
         if lblstyle:
             return "  \\tikz \\node[%s] {%s};\n" % (lblstyle, text)
-        else:
-            return r"\tikz \node {" + text + "};"
+        return r"\tikz \node {" + text + "};"
 
 
 TIKZ_TEMPLATE = r"""\documentclass{standalone}
@@ -699,13 +684,16 @@ class Dot2TikZConv(Dot2PGFConv):
             self.template = TIKZ_TEMPLATE
         DotConvBase.__init__(self, options)
 
-        self.styles = dict(dashed='dashed', dotted='dotted',
-                           bold='very thick', filled='fill', invis="", invisible="",
-                           rounded='rounded corners', )
-        self.dashstyles = dict(
-            dashed=r'\pgfsetdash{{3pt}{3pt}}{0pt}',
-            dotted=r'\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
-            bold=r'\pgfsetlinewidth{1.2pt}')
+        self.styles = {
+            'dashed': 'dashed', 'dotted': 'dotted',
+            'bold': 'very thick', 'filled': 'fill', 'invis': '',
+            'invisible': '', 'rounded': 'rounded corners'
+        }
+        self.dashstyles = {
+            'dashed': r'\pgfsetdash{{3pt}{3pt}}{0pt}',
+            'dotted': r'\pgfsetdash{{\pgflinewidth}{2pt}}{0pt}',
+            'bold': r'\pgfsetlinewidth{1.2pt}'
+        }
 
     def set_options(self):
         Dot2PGFConv.set_options(self)
@@ -784,10 +772,7 @@ class Dot2TikZConv(Dot2PGFConv):
             if not pos:
                 continue
             x, y = pos.split(',')
-            if dotshape != 'point':
-                label = self.get_label(node)
-            else:
-                label = ''
+            label = '' if dotshape == 'point' else self.get_label(node)
 
             pos = "%sbp,%sbp" % (smart_float(x), smart_float(y))
             style = node.attr.get('style') or ""
@@ -942,10 +927,7 @@ class Dot2TikZConv(Dot2PGFConv):
                 edgelabel = self.get_label(edge)
                 # log.warning('label: %s', edgelabel)
                 lblstyle = get_drawobj_lblstyle(edge, extra_styles=edge.attr.get('exstyle'))
-                if lblstyle:
-                    lblstyle = '[' + lblstyle + ']'
-                else:
-                    lblstyle = ''
+                lblstyle = ('[' + lblstyle + ']') if lblstyle else ''
                 if edgelabel:
                     extra = " node%s {%s}" % (lblstyle, edgelabel)
 
