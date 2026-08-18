@@ -1,0 +1,10 @@
+[rules]
+too-many-positional-arguments = "ignore"
+invalid-type-form = "ignore"
+missing-argument = "ignore"
+call-non-callable = "ignore"
+unresolved-attribute = "ignore"
+unresolved-import = "ignore"
+unresolved-reference = "ignore"
+[terminal]
+output-format = "concise"
