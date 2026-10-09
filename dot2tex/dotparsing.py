@@ -408,22 +408,15 @@ class DotDataParser:
                                 Optional(OneOrMore(pluss + double_quoted_string)), adjacent=False)
         alphastring_ = OneOrMore(CharsNotIn(punctuation_))
 
-        def parse_html(s, loc, toks):
-            return '<<%s>>' % ''.join(toks[0])
-
         opener = '<'
         closer = '>'
-        try:
-            html_text = pyparsing.nested_expr(opener, closer,
-                                             ((CharsNotIn(
-                                                 opener + closer).set_parse_action(lambda t: t[0]))
-                                              )).set_parse_action(parse_html)
-        except Exception:
-            log.debug('nested_expr not available.')
-            log.warning('Old version of pyparsing detected. Version 1.4.8 or '
-                        'later is recommended. Parsing of html labels may not '
-                        'work properly.')
-            html_text = Combine(Literal("<<") + OneOrMore(CharsNotIn(",]")))
+
+        def parse_html(s, loc, toks):
+            return toks[0].replace(opener, 2 * opener).replace(closer, 2 * closer)
+
+        html_text = pyparsing.original_text_for(pyparsing.nested_expr(opener, closer,
+                                                                      CharsNotIn(opener + closer))
+                                                ).add_parse_action(parse_html)
 
         float_number = Combine(Optional(minus) +
                                OneOrMore(Word(nums + "."))).set_name("float_number")
